@@ -1,0 +1,14 @@
+{
+  "name": "pathway-up",
+  "private": true,
+  "repository": "websavva/pathway-up",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@8.6.6",
+  "engines": {
+    "node": "^18.x.x"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.14"
+  }
+}

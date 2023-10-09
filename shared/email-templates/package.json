@@ -1,0 +1,13 @@
+{
+  "name": "@pathway-up/email-templates",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Data transfer objects for the PathwayUp app",
+  "license": "MIT",
+  "type": "module",
+  "types": "src/index.ts",
+  "main": "src/index.ts",
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}
