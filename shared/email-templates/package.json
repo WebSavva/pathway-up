@@ -2,12 +2,46 @@
   "name": "@pathway-up/email-templates",
   "private": true,
   "version": "1.0.0",
-  "description": "Data transfer objects for the PathwayUp app",
+  "description": "Email templates for the PathwayUp app",
   "license": "MIT",
   "type": "module",
-  "types": "src/index.ts",
-  "main": "src/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "dev": "tsup --format esm,cjs --external react --watch src",
+    "build": "tsup src/index.ts --format esm,cjs --dts --external react"
+  },
   "dependencies": {
-    "zod": "^3.22.4"
+    "react-email": "^1.9.5",
+    "@react-email/components": "^0.0.7",
+    "@react-email/render": "^0.0.7",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "^7.22.15",
+    "lodash-es": "^4.17.21",
+    "jiti": "^1.20.0",
+    "tsup": "^7.2.0",
+    "h3": "^1.8.2",
+    "@types/react": "^18.2.31",
+    "serve-static": "^1.15.0",
+    "@pathway-up/static": "workspace:*",
+    "mlly": "^1.4.2"
   }
 }
