@@ -4,23 +4,14 @@
   "version": "1.0.0",
   "description": "Static files for the PathwayUp app",
   "license": "MIT",
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./index.js",
+  "type": "commonjs",
+  "main": "./index.js",
   "types": "./types.d.ts",
   "files": [
     "src/**"
   ],
   "exports": {
-    ".": {
-      "import": {
-        "types": "./types.d.ts",
-        "default": "./index.js"
-      },
-      "require": {
-        "types": "./types.d.ts",
-        "default": "./index.cjs"
-      }
-    }
+    "import": "./index.mjs",
+    "require": "./index.js"
   }
 }

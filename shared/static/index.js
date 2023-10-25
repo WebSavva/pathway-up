@@ -1,4 +1,3 @@
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+const { join } = require('path');
 
-export const staticPath = join(dirname(fileURLToPath(import.meta.url)), 'src');
+exports.staticPath = join(__dirname, 'src');

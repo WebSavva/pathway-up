@@ -9,13 +9,14 @@ import {
   setResponseHeader,
   fromNodeMiddleware,
   eventHandler,
+  getQuery,
 } from 'h3';
 import serveStatic from 'serve-static';
 import { staticPath } from '@pathway-up/static';
 import toKebabCase from 'lodash-es/kebabCase';
 
-import * as emailTemplates from '../dist';
-import type { EmailTemplate } from '../src/utils/template';
+import * as emailTemplates from '../src';
+import type { createTemplate } from '../src/utils/template';
 
 const emailTemplatesMap = Object.fromEntries(
   Object.entries(emailTemplates).map(([camelCasedName, template]) => {
@@ -24,7 +25,7 @@ const emailTemplatesMap = Object.fromEntries(
       template,
     ];
   }),
-) as Record<string, typeof EmailTemplate>;
+) as Record<string, ReturnType<typeof createTemplate>>;
 
 const app = createApp();
 
@@ -42,11 +43,13 @@ const router = createRouter()
     eventHandler((event) => {
       const id = getRouterParam(event, 'id');
 
-      const EmailTemplate = emailTemplatesMap[id!];
+      const template = emailTemplatesMap[id!];
 
-      const html = new EmailTemplate().render();
+      const query = getQuery(event);
 
-      return send(event, html, 'text/html');
+      const html = template(query);
+
+      return send(event, html, 'text/html;charset=utf-8');
     }),
   )
   .get(
@@ -60,7 +63,7 @@ const router = createRouter()
         })
         .join('\n');
 
-      return send(event, pageLinks, 'text/html');
+      return send(event, pageLinks, 'text/html;charset=utf-8');
     }),
   );
 
@@ -71,4 +74,4 @@ export const startDevServer = () =>
     console.log('Server is up and running !'),
   );
 
-export default app;
+startDevServer();

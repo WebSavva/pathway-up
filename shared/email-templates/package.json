@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "description": "Email templates for the PathwayUp app",
   "license": "MIT",
-  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -24,8 +23,8 @@
     }
   },
   "scripts": {
-    "dev": "tsup --format esm,cjs --external react --watch src",
-    "build": "tsup src/index.ts --format esm,cjs --dts --external react"
+    "dev": "tsup --config tsup.dev.ts",
+    "build": "tsup --config tsup.ts"
   },
   "dependencies": {
     "react-email": "^1.9.5",
@@ -35,13 +34,12 @@
   },
   "devDependencies": {
     "@babel/preset-react": "^7.22.15",
+    "babel-plugin-module-resolver": "^5.0.0",
     "lodash-es": "^4.17.21",
-    "jiti": "^1.20.0",
     "tsup": "^7.2.0",
     "h3": "^1.8.2",
     "@types/react": "^18.2.31",
     "serve-static": "^1.15.0",
-    "@pathway-up/static": "workspace:*",
-    "mlly": "^1.4.2"
+    "@pathway-up/static": "workspace:*"
   }
 }
