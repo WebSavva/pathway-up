@@ -1,0 +1,17 @@
+{
+  "name": "@pathway-up/static",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Static files for the PathwayUp app",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "./index.js",
+  "types": "./types.d.ts",
+  "files": [
+    "src/**"
+  ],
+  "exports": {
+    "import": "./index.mjs",
+    "require": "./index.js"
+  }
+}
