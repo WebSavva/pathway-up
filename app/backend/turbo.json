@@ -1,0 +1,13 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "pipeline": {
+    "build": {
+      "dependsOn": ["shared#build"]
+    },
+
+    "dev": {
+      "dependsOn": ["@pathway-up/email-templates#build"]
+    }
+  }
+}

@@ -1,7 +1,7 @@
 export const jwt = () => ({
-  privateKey: process.env.JWT_PRIVATE_KEY,
-  algorithm: process.env.JWT_ALGORITHM,
-  signupRequestExpiresIn: process.env.JWT_SIGNUP_REQUEST_EXPIRES_IN,
+  privateKey: process.env.PW_JWT_PRIVATE_KEY,
+  algorithm: process.env.PW_JWT_ALGORITHM,
+  signupRequestExpiresIn: process.env.PW_JWT_SIGNUP_REQUEST_EXPIRES_IN,
   passwordChangeRequestExpiresIn:
-    process.env.JWT_PASSWORD_CHANGE_REQUEST_EXPIRES_IN,
+    process.env.PW_JWT_PASSWORD_CHANGE_REQUEST_EXPIRES_IN,
 });

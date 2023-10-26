@@ -1,3 +1,3 @@
 export const crypto  = () => ({
-  passwordHashSaltRounds: +process.env.PASSWORD_HASH_SALT_ROUNDS
+  passwordHashSaltRounds: +process.env.PW_PASSWORD_HASH_SALT_ROUNDS
 })
