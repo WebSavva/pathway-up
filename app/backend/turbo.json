@@ -3,7 +3,7 @@
   "extends": ["//"],
   "pipeline": {
     "build": {
-      "dependsOn": ["shared#build"]
+      "dependsOn": ["@pathway-up/email-templates#build"]
     },
 
     "dev": {

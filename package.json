@@ -8,6 +8,10 @@
   "engines": {
     "node": "^20.x.x"
   },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev"
+  },
   "devDependencies": {
     "turbo": "^1.10.14"
   }

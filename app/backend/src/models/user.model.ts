@@ -1,6 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Relation,
+} from 'typeorm';
 
-import { GENDERS, COUNTRY, ROLES } from '@/constants';
+import { GENDERS, COUNTRY, ROLES } from '../constants';
+
+import { Email } from './email.model';
 
 @Entity()
 export class User {
@@ -10,9 +18,8 @@ export class User {
   @Column({
     type: 'varchar',
     length: '20',
-    nullable: true,
   })
-  name?: string | null;
+  name: string;
 
   @Column({
     type: 'varchar',
@@ -83,4 +90,9 @@ export class User {
     unique: true,
   })
   confirmationHash: string;
+
+  @OneToMany((type) => Email, (email) => email.user, {
+    onDelete: 'CASCADE',
+  })
+  emails: Relation<Email>[];
 }

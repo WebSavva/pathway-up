@@ -47,9 +47,9 @@ const router = createRouter()
 
       const query = getQuery(event);
 
-      const html = template(query);
+      const { text } = template(query);
 
-      return send(event, html, 'text/html;charset=utf-8');
+      return send(event,text, 'text/html;charset=utf-8');
     }),
   )
   .get(

@@ -12,29 +12,36 @@ import {
   ConfirmationPayloadSchema,
   ConfirmationPayload,
 } from '@pathway-up/dtos';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Email } from '@/models/email.model';
 
 import { CryptoService } from '@/modules/crypto/crypto.service';
 import { ValidationPipe } from '@/pipes/validation.pipe';
 import { Env } from '@/configurations';
+import { MailService } from '@/modules/mail/mail.service';
+import { EmailType } from '@/constants/email-type.constant';
 
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
+    @InjectRepository(Email) private emailRepo: Repository<Email>,
     private authService: AuthService,
     private cryptoService: CryptoService,
     private envService: ConfigService<Env>,
+    private mailService: MailService,
   ) {}
 
   @Post('/sign-up')
   @UsePipes(new ValidationPipe(AuthUserDtoSchema))
   public async signUp(@Body() authUserDto: AuthUserDto) {
-    const { email, id, confirmationHash } = await this.authService.signUpUser(
-      authUserDto,
-    );
+    const signedUpUser = await this.authService.signUpUser(authUserDto);
 
-    const isProd = await this.envService.get('mode.isProduction', {
+    const { email, id, confirmationHash, name } = signedUpUser;
+
+    const { isProduction: isProd } = this.envService.get('mode', {
       infer: true,
     });
 
@@ -51,10 +58,25 @@ export class AuthController {
     );
 
     // sending confirmation account email
+    await this.mailService.sendMail('SignUpConfirmEmailTemplate', {
+      to: email,
+      templateProps: {
+        confirmUrl: `https://localhost:3000/config?confirmHash=${confirmationHash}`,
+        username: name,
+      },
+    });
+
+    const signUpEmail = await this.emailRepo.create();
+
+    signUpEmail.type = EmailType.signUpConfirm;
+    signUpEmail.user = signedUpUser;
+
+    await this.emailRepo.save(signUpEmail);
 
     return {
       email,
       id,
+      name,
       confirmationToken: isProd ? undefined : confirmationToken,
     };
   }

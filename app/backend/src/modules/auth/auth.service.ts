@@ -30,6 +30,7 @@ export class AuthService {
       email,
       passwordHash,
       confirmationHash,
+      name: email.split('@')[0],
     });
 
     return this.UserRepository.save(newUser);

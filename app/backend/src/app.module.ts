@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { staticPath } from '@pathway-up/static';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -14,34 +16,36 @@ import { AuthModule } from './modules/auth/auth.module';
       isGlobal: true,
       load: [loadAllConfigurations],
     }),
+    ServeStaticModule.forRoot({
+      rootPath: staticPath,
+      serveRoot: '/static',
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (envService: ConfigService<Env>) => {
+      useFactory: (configService: ConfigService<Env>) => {
+        const dbConfig = configService.get('db', {
+          infer: true,
+        });
+
+        const { database, user: username, password, port, host } = dbConfig;
+
         return {
-          database: envService.get('db.database', {
+          database,
+
+          synchronize: configService.get('mode.isDev', {
             infer: true,
           }),
-
-          synchronize: true,
 
           type: 'postgres',
 
-          username: envService.get('db.user', {
-            infer: true,
-          }),
+          username,
 
-          password: envService.get('db.password', {
-            infer: true,
-          }),
+          password,
 
-          port: envService.get('db.port', {
-            infer: true,
-          }),
+          port,
 
-          host: envService.get('db.host', {
-            infer: true,
-          }),
+          host,
 
           entities: MODELS,
         };
