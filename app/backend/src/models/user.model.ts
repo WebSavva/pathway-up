@@ -4,6 +4,7 @@ import {
   Column,
   OneToMany,
   Relation,
+  CreateDateColumn,
 } from 'typeorm';
 
 import { GENDERS, COUNTRY, ROLES } from '../constants';
@@ -95,4 +96,16 @@ export class User {
     onDelete: 'CASCADE',
   })
   emails: Relation<Email>[];
+
+  @CreateDateColumn({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
+
+  @Column({
+    type: 'timestamptz',
+    nullable: true,
+  })
+  confirmedAt: Date | null;
 }

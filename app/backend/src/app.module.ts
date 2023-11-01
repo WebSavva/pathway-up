@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -6,15 +11,16 @@ import { staticPath } from '@pathway-up/static';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { Env, loadAllConfigurations } from './configurations';
+import { envLoaders, Env } from './configurations';
 import { MODELS } from './models';
 import { AuthModule } from './modules/auth/auth.module';
+import { CookiesMiddleware } from './middlewares/cookies.middleware';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [loadAllConfigurations],
+      load: envLoaders,
     }),
     ServeStaticModule.forRoot({
       rootPath: staticPath,
@@ -56,4 +62,11 @@ import { AuthModule } from './modules/auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CookiesMiddleware).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL,
+    });
+  }
+}
