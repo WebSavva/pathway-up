@@ -10,6 +10,7 @@ import {
 import { GENDERS, COUNTRY, ROLES } from '../constants';
 
 import { Email } from './email.model';
+import { ChangePasswordRequest } from './change-password-request';
 
 @Entity()
 export class User {
@@ -96,6 +97,11 @@ export class User {
     onDelete: 'CASCADE',
   })
   emails: Relation<Email>[];
+
+  @OneToMany((type) => ChangePasswordRequest, (changePasswordRequest) => changePasswordRequest.user, {
+    onDelete: 'CASCADE',
+  })
+  changePasswordRequests: Relation<ChangePasswordRequest>[];
 
   @CreateDateColumn({
     type: 'timestamptz',

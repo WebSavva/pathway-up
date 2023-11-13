@@ -5,7 +5,8 @@ import {
   StyledLink,
 } from '@/components';
 
-import { createTemplate } from '../../utils/template';
+import { createTemplate } from '@/utils/template';
+import { TemplateName } from '@/utils/template-names'
 
 export interface SignUpConfirmTemplateProps {
   confirmUrl: string;
@@ -13,6 +14,7 @@ export interface SignUpConfirmTemplateProps {
 }
 
 export const SignUpConfirmEmailTemplate = createTemplate(
+  TemplateName.SignUpConfirmEmail,
   ({ confirmUrl, username }: SignUpConfirmTemplateProps) => {
     return (
       <Layout previewText="Email Confirmation | PathwayUp">

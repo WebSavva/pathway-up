@@ -1,4 +1,4 @@
 export enum EmailType {
-  signUpConfirm = 'sign-up-confirm',
-  passwordChangeConfirm = 'password-change-confirm',
+  SignUpConfirm = 'sign-up-confirm',
+  PasswordChangeConfirm = 'password-change-confirm',
 }
