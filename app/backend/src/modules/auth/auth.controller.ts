@@ -8,6 +8,7 @@ import {
   Res,
   Inject,
   Req,
+  Get,
 } from '@nestjs/common';
 import { AuthUserDto, AuthUserDtoSchema } from '@pathway-up/dtos';
 import { ConfigType } from '@nestjs/config';
@@ -18,7 +19,7 @@ import {
 import { joinURL } from 'ufo';
 import { TemplateName } from '@pathway-up/email-templates';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Response, Request } from 'express';
 
 import { Email } from '@/models/email.model';
@@ -37,7 +38,8 @@ import { AuthService } from './auth.service';
 @Controller('auth')
 export class AuthController {
   constructor(
-    @InjectRepository(ChangePasswordRequest) private changePasswordRequestRepo: Repository<ChangePasswordRequest>,
+    @InjectRepository(ChangePasswordRequest)
+    private changePasswordRequestRepo: Repository<ChangePasswordRequest>,
     @Inject(jwtConfig.KEY) private jwtOptions: ConfigType<typeof jwtConfig>,
     @Inject(modeConfig.KEY) private modeOptions: ConfigType<typeof modeConfig>,
     @Inject(urlConfig.KEY) private urlOptions: ConfigType<typeof urlConfig>,
@@ -45,6 +47,7 @@ export class AuthController {
     private resendOptions: ConfigType<typeof resendConfig>,
     private authService: AuthService,
     private cryptoService: CryptoService,
+    private dataSource: DataSource,
   ) {}
 
   @Post('/sign-up')
@@ -81,7 +84,7 @@ export class AuthController {
 
     res.cookies.set(resendCookieConfig.name, id, {
       signed: true,
-      maxAge: resendCookieConfig.maxAge,
+      maxAge: resendCookieConfig.maxAge * 1e3,
     });
 
     return {
@@ -131,7 +134,15 @@ export class AuthController {
     if (!userId)
       throw new BadRequestException('Invalid user data was provided !');
 
-    const allUserSignUpEmails = await this.authService.findEmails(userId, EmailType.SignUpConfirm);
+    const allUserSignUpEmails = await this.authService.findEmails(
+      userId,
+      EmailType.SignUpConfirm,
+    );
+
+    const [lastSignUpEmail] = allUserSignUpEmails;
+    const { user } = lastSignUpEmail;
+
+    this.authService.validateUnconfirmedUser(user);
 
     const {
       resendOptions: {
@@ -144,17 +155,13 @@ export class AuthController {
         `Only ${maxAttempts} confirmation emails can be sent !`,
       );
 
-    const [lastSignUpEmail] = allUserSignUpEmails;
-
-    const secondPassedAfterLastEmail =
+    const secondsPassedAfterLastEmail =
       (Date.now() - +lastSignUpEmail.sentAt) / 1e3;
 
-    if (secondPassedAfterLastEmail < interval)
+    if (secondsPassedAfterLastEmail < interval)
       throw new BadRequestException(
         `Confirmation email can be sent every ${interval / 60} minutes !`,
       );
-
-    const { user } = lastSignUpEmail;
 
     const { confirmationHash } = user;
 
@@ -174,57 +181,70 @@ export class AuthController {
 
   @Post('/restore')
   @UsePipes(new ValidationPipe(AuthUserDtoSchema))
-  async restorePassword(@Body() {
-    email,
-    password
-  }: AuthUserDto) {
+  async restorePassword(@Body() { email, password }: AuthUserDto) {
     const existingUser = await this.authService.findUserByEmail(email);
 
-    if (!existingUser || !existingUser.isConfirmed) throw new BadRequestException('Invalid user data was provided !');
+    if (!existingUser || !existingUser.isConfirmed)
+      this.authService.throwInvalidUserException();
 
-    const lastChangePasswordRequest = await this.changePasswordRequestRepo.findOne({
-      where: {
-        user: existingUser,
-      },
+    const lastChangePasswordRequest =
+      await this.changePasswordRequestRepo.findOne({
+        where: {
+          user: existingUser,
+        },
 
-      order: {
-        createdAt: 'DESC',
-      }
-    })
-
+        order: {
+          createdAt: 'DESC',
+        },
+      });
 
     if (lastChangePasswordRequest) {
       const {
-        changePassword: {
-          interval
-        }
+        changePassword: { interval },
       } = this.resendOptions;
 
-      const passedMiliSecondsAfterLastRequest = Date.now() - (interval * 1e3 + +lastChangePasswordRequest.createdAt);
+      const allowedAfter =
+        interval * 1e3 + +lastChangePasswordRequest.createdAt;
 
-      if (passedMiliSecondsAfterLastRequest < 0) throw new BadRequestException(`Password can be changed only every ${interval / 60} minutes !`);
+      if (Date.now() < allowedAfter)
+        throw new BadRequestException(
+          `Password can be changed only every ${interval / 60} minutes !`,
+        );
     }
 
     const changePasswordRequest = await this.changePasswordRequestRepo.create();
 
     const confirmationHash = this.cryptoService.generateHash();
 
-    changePasswordRequest.newPasswordHash = await this.cryptoService.hashPassword(password);
+    changePasswordRequest.newPasswordHash =
+      await this.cryptoService.hashPassword(password);
     changePasswordRequest.oldPasswordHash = existingUser.passwordHash;
     changePasswordRequest.user = existingUser;
-    changePasswordRequest.confirmationHash =  confirmationHash;
+    changePasswordRequest.confirmationHash = confirmationHash;
 
     await this.changePasswordRequestRepo.save(changePasswordRequest);
 
     // sending email
-    const confirmationToken = this.cryptoService.generateJwtToken({
-      confirmationHash,
-    }, {
-      expiresIn: this.jwtOptions.passwordChangeRequestExpiresIn,
-    });
+    const confirmationToken = this.cryptoService.generateJwtToken(
+      {
+        confirmationHash,
+      },
+      {
+        expiresIn: this.jwtOptions.passwordChangeRequestExpiresIn,
+      },
+    );
 
-    return this.modeOptions.isDev ? {
-      confirmationHash
-    } : null;
+    return this.modeOptions.isDev
+      ? {
+          confirmationToken,
+        }
+      : null;
   }
+
+  // @Post('/restore/confirm')
+  // async confirmPasswordRestore(
+  //   @Query('token') confirmationToken?: string,
+  // ) {
+
+  // }
 }

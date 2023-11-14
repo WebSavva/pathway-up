@@ -9,11 +9,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { staticPath } from '@pathway-up/static';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { envLoaders, Env } from './configurations';
 import { MODELS } from './models';
 import { AuthModule } from './modules/auth/auth.module';
+import { DevModule } from './modules/dev/dev.module';
 import { CookiesMiddleware } from './middlewares/cookies.middleware';
 
 @Module({
@@ -57,10 +56,9 @@ import { CookiesMiddleware } from './middlewares/cookies.middleware';
         };
       },
     }),
+    DevModule,
     AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

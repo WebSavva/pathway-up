@@ -26,7 +26,7 @@ export class ChangePasswordRequest {
   })
   confirmedAt: Date | null;
 
-  @ManyToOne((type) => User, (user) => user.emails)
+  @ManyToOne((type) => User, (user) => user.changePasswordRequests)
   user: Relation<User>;
 
   @Column({

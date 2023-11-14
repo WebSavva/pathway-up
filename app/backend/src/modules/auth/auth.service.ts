@@ -25,13 +25,28 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
+  throwInvalidUserException() {
+    throw new BadRequestException('Invalid user data was provided !');
+  }
+
+  validateUnconfirmedUser(user: User) {
+    if (!user || user.isConfirmed) this.throwInvalidUserException();
+
+    const expiresAfter = new Date(
+      +user.createdAt + this.jwtOptions.signupRequestExpiresIn * 1e3,
+    );
+
+    const today = new Date();
+
+    if (today > expiresAfter) this.throwInvalidUserException();
+  }
+
   async signUpUser(authUserDto: AuthUserDto) {
     const existingUser = await this.UserRepository.findOneBy({
       email: authUserDto.email,
     });
 
-    if (existingUser)
-      throw new BadRequestException('Invalid user data was provided !');
+    if (existingUser) this.throwInvalidUserException();
 
     const { email, password } = authUserDto;
     const confirmationHash = this.cryptoService.generateHash();
@@ -53,21 +68,7 @@ export class AuthService {
       confirmationHash,
     });
 
-    const InvalidUserError = new BadRequestException(
-      'Invalid user data was provided !',
-    );
-
-    if (!userToBeConfirmed || userToBeConfirmed.isConfirmed)
-      throw InvalidUserError;
-
-    const expiresAfter = new Date(
-      +userToBeConfirmed.createdAt +
-        this.jwtOptions.signupRequestExpiresIn * 1e3,
-    );
-
-    const today = new Date();
-
-    if (today > expiresAfter) throw InvalidUserError;
+    this.validateUnconfirmedUser(userToBeConfirmed);
 
     userToBeConfirmed.isConfirmed = true;
 
@@ -97,9 +98,9 @@ export class AuthService {
     return this.EmailRepository.save(signUpEmail);
   }
 
-  findUserByEmail(email:string) {
+  findUserByEmail(email: string) {
     return this.UserRepository.findOneBy({
-      email
+      email,
     });
   }
 

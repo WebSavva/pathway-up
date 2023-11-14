@@ -1,3 +1,3 @@
 export enum TemplateName {
-  SignUpConfirmEmail,
-};
+  SignUpConfirmEmail = 'sign-up-confirm-email',
+}
