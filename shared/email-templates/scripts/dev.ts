@@ -46,11 +46,13 @@ const router = createRouter()
   .get(
     '/',
     eventHandler((event) => {
-      const pageLinks = Object.entries(TemplateName)
-        .map(([name, key]) => {
-          return `<a href="/templates/${key}">${name}</a>`;
-        })
-        .join('\n');
+      const pageLinks = [
+        '<ul>',
+        ...Object.entries(TemplateName).map(([name, key]) => {
+          return `<li><a href="/templates/${key}">${name}</a></li>`;
+        }),
+        '</ul>',
+      ].join('\n');
 
       return send(event, pageLinks, 'text/html;charset=utf-8');
     }),

@@ -7,10 +7,12 @@ import {
   Relation,
 } from 'typeorm';
 
+import { UpdateableEntity } from './abstract/updateable-entity';
+
 import { User } from './user.model';
 
 @Entity()
-export class ChangePasswordRequest {
+export class PasswordChangeRequest extends UpdateableEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -26,7 +28,7 @@ export class ChangePasswordRequest {
   })
   confirmedAt: Date | null;
 
-  @ManyToOne((type) => User, (user) => user.changePasswordRequests)
+  @ManyToOne((type) => User, (user) => user.passwordChangeRequests)
   user: Relation<User>;
 
   @Column({
@@ -36,11 +38,18 @@ export class ChangePasswordRequest {
 
   @Column({
     type: 'varchar',
+    nullable: true,
   })
-  oldPasswordHash: string
+  oldPasswordHash?: string;
 
   @Column({
     type: 'varchar',
   })
-  newPasswordHash: string
+  newPasswordHash: string;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isConfirmed: boolean;
 }

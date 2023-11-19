@@ -1,12 +1,13 @@
-import { Algorithm } from 'jsonwebtoken'
+import { Algorithm } from 'jsonwebtoken';
 
 import { registerAs } from './utils';
 
 export const jwtConfig = registerAs('jwt', () => ({
-  privateKey: process.env.PW_JWT_PRIVATE_KEY!,
+  privateKey: process.env.PW_JWT_PRIVATE_KEY,
   algorithm: process.env.PW_JWT_ALGORITHM as Algorithm,
-  signupRequestExpiresIn: +process.env.PW_JWT_SIGNUP_REQUEST_EXPIRES_IN!,
+  signupRequestExpiresIn: +process.env.PW_JWT_SIGNUP_REQUEST_EXPIRES_IN,
   passwordChangeRequestExpiresIn:
-    +process.env.PW_JWT_PASSWORD_CHANGE_REQUEST_EXPIRES_IN!,
-}));
+    +process.env.PW_JWT_PASSWORD_CHANGE_REQUEST_EXPIRES_IN,
 
+  authExpiresIn: +process.env.PW_JWT_AUTH_EXPIRES_IN,
+}));

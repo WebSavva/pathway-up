@@ -1,7 +1,6 @@
-import { DynamicModule, Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
 import { DevController } from './dev.controller';
-import { ModuleRef } from '@nestjs/core';
 
 @Module({
   controllers: [DevController],

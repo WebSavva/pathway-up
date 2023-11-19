@@ -8,47 +8,57 @@ import {
   Res,
   Inject,
   Req,
-  Get,
 } from '@nestjs/common';
 import { AuthUserDto, AuthUserDtoSchema } from '@pathway-up/dtos';
 import { ConfigType } from '@nestjs/config';
-import {
-  ConfirmationPayloadSchema,
-  ConfirmationPayload,
-} from '@pathway-up/dtos';
-import { joinURL } from 'ufo';
-import { TemplateName } from '@pathway-up/email-templates';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Response, Request } from 'express';
 
-import { Email } from '@/models/email.model';
-import { ChangePasswordRequest } from '@/models/change-password-request';
+import { PasswordChangeRequest } from '@/models/password-change-request.model';
 import { CryptoService } from '@/modules/crypto/crypto.service';
 import { ValidationPipe } from '@/pipes/validation.pipe';
-import { MailService } from '@/modules/mail/mail.service';
 import { EmailType } from '@/constants/email-type.constant';
 import { jwtConfig } from '@/configurations/jwt.config';
 import { resendConfig } from '@/configurations/resend.config';
 import { modeConfig } from '@/configurations/mode.config';
-import { urlConfig } from '@/configurations/url.config';
 
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    @InjectRepository(ChangePasswordRequest)
-    private changePasswordRequestRepo: Repository<ChangePasswordRequest>,
+    @InjectRepository(PasswordChangeRequest)
+    private passwordChangeRequestRepo: Repository<PasswordChangeRequest>,
     @Inject(jwtConfig.KEY) private jwtOptions: ConfigType<typeof jwtConfig>,
     @Inject(modeConfig.KEY) private modeOptions: ConfigType<typeof modeConfig>,
-    @Inject(urlConfig.KEY) private urlOptions: ConfigType<typeof urlConfig>,
     @Inject(resendConfig.KEY)
     private resendOptions: ConfigType<typeof resendConfig>,
     private authService: AuthService,
     private cryptoService: CryptoService,
-    private dataSource: DataSource,
   ) {}
+
+  @Post('/login')
+  @UsePipes(new ValidationPipe(AuthUserDtoSchema))
+  public async login(@Body() { email, password }: AuthUserDto) {
+    const user = await this.authService.findUserByEmail(email);
+
+    this.authService.validateConfirmedUser(user);
+
+    const arePasswordsEqual = await this.cryptoService.comparePasswords(
+      password,
+      user.passwordHash,
+    );
+
+    if (!arePasswordsEqual) this.authService.throwInvalidUserException();
+
+    const authToken = await this.authService.generateAuthToken(user.id);
+
+    return {
+      user,
+      token: authToken,
+    };
+  }
 
   @Post('/sign-up')
   @UsePipes(new ValidationPipe(AuthUserDtoSchema))
@@ -100,20 +110,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Query('token') confirmationToken?: string,
   ) {
-    if (!confirmationToken)
-      throw new BadRequestException('No confirmation token was provided !');
-
-    let payload: ConfirmationPayload;
-
-    try {
-      payload = await this.cryptoService.verifyJwtToken<ConfirmationPayload>(
-        confirmationToken,
-      );
-
-      ConfirmationPayloadSchema.parse(payload);
-    } catch (tokenVerificationError) {
-      throw new BadRequestException('Invalid confirmation token was provided');
-    }
+    const payload = await this.authService.verifyConfirmationToken(
+      confirmationToken,
+    );
 
     const confirmedUser = await this.authService.confirmSignedUpUser(
       payload.confirmationHash,
@@ -125,10 +124,7 @@ export class AuthController {
   }
 
   @Post('/sign-up/resend')
-  async resendSignUpConfirmationEmail(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async resendSignUpConfirmationEmail(@Req() req: Request) {
     const userId = +req.signedCookies[this.resendOptions.signup.cookie.name];
 
     if (!userId)
@@ -166,13 +162,9 @@ export class AuthController {
     const { confirmationHash } = user;
 
     // generating confirmation json webtoken
-    const confirmationToken = await this.cryptoService.generateJwtToken(
-      {
-        confirmationHash,
-      },
-      {
-        expiresIn: this.jwtOptions.signupRequestExpiresIn,
-      },
+    const confirmationToken = await this.authService.generateConfirmationToken(
+      confirmationHash,
+      this.jwtOptions.signupRequestExpiresIn,
     );
 
     // sending confirmation account email
@@ -187,10 +179,12 @@ export class AuthController {
     if (!existingUser || !existingUser.isConfirmed)
       this.authService.throwInvalidUserException();
 
-    const lastChangePasswordRequest =
-      await this.changePasswordRequestRepo.findOne({
+    const lastPasswordChangeRequest =
+      await this.passwordChangeRequestRepo.findOne({
         where: {
-          user: existingUser,
+          user: {
+            id: existingUser.id,
+          },
         },
 
         order: {
@@ -198,13 +192,13 @@ export class AuthController {
         },
       });
 
-    if (lastChangePasswordRequest) {
+    if (lastPasswordChangeRequest) {
       const {
         changePassword: { interval },
       } = this.resendOptions;
 
       const allowedAfter =
-        interval * 1e3 + +lastChangePasswordRequest.createdAt;
+        interval * 1e3 + +lastPasswordChangeRequest.createdAt;
 
       if (Date.now() < allowedAfter)
         throw new BadRequestException(
@@ -212,39 +206,36 @@ export class AuthController {
         );
     }
 
-    const changePasswordRequest = await this.changePasswordRequestRepo.create();
+    const passwordChangeRequest = await this.passwordChangeRequestRepo.create();
 
     const confirmationHash = this.cryptoService.generateHash();
 
-    changePasswordRequest.newPasswordHash =
+    passwordChangeRequest.newPasswordHash =
       await this.cryptoService.hashPassword(password);
-    changePasswordRequest.oldPasswordHash = existingUser.passwordHash;
-    changePasswordRequest.user = existingUser;
-    changePasswordRequest.confirmationHash = confirmationHash;
+    passwordChangeRequest.user = existingUser;
+    passwordChangeRequest.confirmationHash = confirmationHash;
 
-    await this.changePasswordRequestRepo.save(changePasswordRequest);
+    await this.passwordChangeRequestRepo.save(passwordChangeRequest);
 
     // sending email
-    const confirmationToken = this.cryptoService.generateJwtToken(
-      {
-        confirmationHash,
-      },
-      {
-        expiresIn: this.jwtOptions.passwordChangeRequestExpiresIn,
-      },
+    const confirmationToken = await this.authService.generateConfirmationToken(
+      confirmationHash,
+      this.jwtOptions.passwordChangeRequestExpiresIn,
     );
 
     return this.modeOptions.isDev
       ? {
           confirmationToken,
         }
-      : null;
+      : true;
   }
 
-  // @Post('/restore/confirm')
-  // async confirmPasswordRestore(
-  //   @Query('token') confirmationToken?: string,
-  // ) {
+  @Post('/restore/confirm')
+  async confirmPasswordRestore(@Query('token') confirmationToken?: string) {
+    const { confirmationHash } = await this.authService.verifyConfirmationToken(
+      confirmationToken,
+    );
 
-  // }
+    return this.authService.confirmPasswordChangeRequest(confirmationHash);
+  }
 }

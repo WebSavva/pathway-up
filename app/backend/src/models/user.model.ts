@@ -9,11 +9,13 @@ import {
 
 import { GENDERS, COUNTRY, ROLES } from '../constants';
 
+import { UpdateableEntity } from './abstract/updateable-entity';
+
 import { Email } from './email.model';
-import { ChangePasswordRequest } from './change-password-request';
+import { PasswordChangeRequest } from './password-change-request.model';
 
 @Entity()
-export class User {
+export class User extends UpdateableEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -98,10 +100,14 @@ export class User {
   })
   emails: Relation<Email>[];
 
-  @OneToMany((type) => ChangePasswordRequest, (changePasswordRequest) => changePasswordRequest.user, {
-    onDelete: 'CASCADE',
-  })
-  changePasswordRequests: Relation<ChangePasswordRequest>[];
+  @OneToMany(
+    (type) => PasswordChangeRequest,
+    (passwordChangeRequest) => passwordChangeRequest.user,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  passwordChangeRequests: Relation<PasswordChangeRequest>[];
 
   @CreateDateColumn({
     type: 'timestamptz',
