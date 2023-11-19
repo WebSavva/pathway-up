@@ -117,6 +117,29 @@ export class AuthService {
     return this.EmailRepository.save(signUpEmail);
   }
 
+  async sendPasswordChangeConfirmationEmail(user: User, token: string) {
+    const { email, name } = user;
+
+    // sending confirmation account email
+    await this.mailService.sendMail(TemplateName.PasswordChangeConfirmEmail, {
+      to: email,
+      templateProps: {
+        confirmUrl: `${joinURL(
+          this.urlOptions.clientBaseUrl,
+          '/config',
+        )}?token=${token}`,
+        username: name,
+      },
+    });
+
+    const signUpEmail = await this.EmailRepository.create();
+
+    signUpEmail.type = EmailType.PasswordChangeConfirm;
+    signUpEmail.user = user;
+
+    return this.EmailRepository.save(signUpEmail);
+  }
+
   findUserByEmail(email: string) {
     return this.UserRepository.findOneBy({
       email,

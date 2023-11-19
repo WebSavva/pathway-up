@@ -8,6 +8,8 @@ import {
   Res,
   Inject,
   Req,
+  Get,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthUserDto, AuthUserDtoSchema } from '@pathway-up/dtos';
 import { ConfigType } from '@nestjs/config';
@@ -19,11 +21,14 @@ import { PasswordChangeRequest } from '@/models/password-change-request.model';
 import { CryptoService } from '@/modules/crypto/crypto.service';
 import { ValidationPipe } from '@/pipes/validation.pipe';
 import { EmailType } from '@/constants/email-type.constant';
+import { AuthGuard } from '@/guards/auth.guard';
 import { jwtConfig } from '@/configurations/jwt.config';
 import { resendConfig } from '@/configurations/resend.config';
 import { modeConfig } from '@/configurations/mode.config';
+import { User } from '@/models/user.model';
 
 import { AuthService } from './auth.service';
+import { CurrentUser } from '@/decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -37,6 +42,12 @@ export class AuthController {
     private authService: AuthService,
     private cryptoService: CryptoService,
   ) {}
+
+  @UseGuards(AuthGuard)
+  @Get('/me')
+  async getCurrentUser(@CurrentUser() currentUser: User) {
+    return currentUser;
+  }
 
   @Post('/login')
   @UsePipes(new ValidationPipe(AuthUserDtoSchema))
@@ -221,6 +232,11 @@ export class AuthController {
     const confirmationToken = await this.authService.generateConfirmationToken(
       confirmationHash,
       this.jwtOptions.passwordChangeRequestExpiresIn,
+    );
+
+    await this.authService.sendPasswordChangeConfirmationEmail(
+      existingUser,
+      confirmationToken,
     );
 
     return this.modeOptions.isDev
