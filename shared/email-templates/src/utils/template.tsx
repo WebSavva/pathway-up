@@ -1,8 +1,22 @@
 import type { FC } from 'react';
 import { render } from '@react-email/components';
 
-export const createTemplate = <P extends Record<string, any>>(
+import type { TemplateName } from './template-names';
+
+export const createTemplate = <
+  N extends TemplateName,
+  P extends Record<string, any>,
+>(
+  key: N,
   Template: FC<P>,
 ) => {
-  return (props: P) => render(<Template {...props} />);
+  return {
+    template: (props: P) => ({
+      html: render(<Template {...props} />),
+      text: render(<Template {...props} />, {
+        plainText: true,
+      }),
+    }),
+    key,
+  };
 };

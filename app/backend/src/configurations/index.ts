@@ -1,23 +1,38 @@
-import { jwt } from './jwt.config';
-import { db } from './db.config';
-import { crypto } from './crypto.config';
-import { mode } from './mode.config';
+import { jwtConfig } from './jwt.config';
+import { dbConfig } from './db.config';
+import { cryptoConfig } from './crypto.config';
+import { modeConfig } from './mode.config';
+import { mailConfig } from './mail.config';
+import { cookiesConfig } from './cookies.config';
+import { resendConfig } from './resend.config';
+import { urlConfig } from './url.config';
 
-const envLoaders = {
-  jwt,
-  db,
-  crypto,
-  mode,
+export const envLoadersMap = {
+  jwtConfig,
+  dbConfig,
+  cryptoConfig,
+  modeConfig,
+  mailConfig,
+  cookiesConfig,
+  resendConfig,
+  urlConfig,
 };
 
-export type EnvLoaders = typeof envLoaders;
+export type EnvLoadersMap = typeof envLoadersMap;
 
-export type Env = {
-  [key in keyof EnvLoaders]: ReturnType<EnvLoaders[key]>;
-};
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I,
+) => void
+  ? I
+  : never;
 
-export const loadAllConfigurations = () => {
-  return Object.fromEntries(
-    Object.entries(envLoaders).map(([key, factory]) => [key, factory()]),
-  );
-};
+export type Env = UnionToIntersection<
+  {
+    [key in keyof EnvLoadersMap]: Record<
+      EnvLoadersMap[key]['KEY'],
+      ReturnType<EnvLoadersMap[key]>
+    >;
+  }[keyof EnvLoadersMap]
+>;
+
+export const envLoaders = Object.values(envLoadersMap);

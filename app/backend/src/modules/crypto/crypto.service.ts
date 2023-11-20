@@ -1,12 +1,13 @@
 import crypto from 'crypto';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { hash as hashPassword, compare as comparePasswords } from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
+import { ConfigType } from '@nestjs/config';
 import jwt, { SignOptions, Algorithm } from 'jsonwebtoken';
 import { defu } from 'defu';
 
-import { Env } from '@/configurations';
+import { jwtConfig } from '@/configurations/jwt.config';
+import { cryptoConfig } from '@/configurations/crypto.config';
 
 export type JwtSignOptions = Pick<SignOptions, 'algorithm' | 'expiresIn'> & {
   privateKey: string;
@@ -22,35 +23,30 @@ export class CryptoService {
   defaultJwtSignOptions: JwtSignOptions;
   defaultJwtVerifyOptions: JwtVerifyOptions;
 
-  constructor(private envService: ConfigService<Env>) {
+  constructor(
+    @Inject(jwtConfig.KEY)
+    { privateKey, algorithm }: ConfigType<typeof jwtConfig>,
+    @Inject(cryptoConfig.KEY)
+    private defaltCryptoConfig: ConfigType<typeof cryptoConfig>,
+  ) {
     this.defaultJwtSignOptions = {
-      privateKey: this.envService.get('jwt.privateKey', {
-        infer: true,
-      }),
+      privateKey,
 
       expiresIn: '1m',
 
-      algorithm: this.envService.get('jwt.algorithm', {
-        infer: true,
-      }),
+      algorithm,
     };
 
     this.defaultJwtVerifyOptions = {
-      privateKey: this.envService.get('jwt.privateKey', {
-        infer: true,
-      }),
+      privateKey,
 
-      algorithm: this.envService.get('jwt.algorithm', {
-        infer: true,
-      }),
+      algorithm,
     };
   }
 
   hashPassword(
     plainPassword: string,
-    saltRounds = this.envService.get('crypto.passwordHashSaltRounds', {
-      infer: true,
-    }),
+    saltRounds = this.defaltCryptoConfig.passwordHashSaltRounds,
   ) {
     return hashPassword(plainPassword, saltRounds);
   }

@@ -7,5 +7,7 @@ export default defineConfig({
 
   format: ['cjs', 'esm'],
 
+  noExternal: [/@?react-email/],
+
   dts: true,
 });

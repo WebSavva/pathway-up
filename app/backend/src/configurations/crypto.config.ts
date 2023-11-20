@@ -1,3 +1,5 @@
-export const crypto  = () => ({
-  passwordHashSaltRounds: +process.env.PASSWORD_HASH_SALT_ROUNDS
-})
+import { registerAs } from './utils';
+
+export const cryptoConfig  = registerAs('crypto' ,() => ({
+  passwordHashSaltRounds: +process.env.PW_PASSWORD_HASH_SALT_ROUNDS!
+}))

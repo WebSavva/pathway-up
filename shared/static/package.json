@@ -6,11 +6,12 @@
   "license": "MIT",
   "type": "commonjs",
   "main": "./index.js",
-  "types": "./types.d.ts",
+  "types": "types.d.ts",
   "files": [
     "src/**"
   ],
   "exports": {
+    "types": "./types.d.ts",
     "import": "./index.mjs",
     "require": "./index.js"
   }

@@ -1,55 +1,72 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { staticPath } from '@pathway-up/static';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { Env, loadAllConfigurations } from './configurations';
+import { envLoaders, Env } from './configurations';
 import { MODELS } from './models';
 import { AuthModule } from './modules/auth/auth.module';
+import { DevModule } from './modules/dev/dev.module';
+import { SerializerModule } from './modules/serializer/serializer.module';
+import { CookiesMiddleware } from './middlewares/cookies.middleware';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [loadAllConfigurations],
+      load: envLoaders,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: staticPath,
+      serveRoot: '/static',
+    }),
+    SerializerModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (envService: ConfigService<Env>) => {
+      useFactory: (configService: ConfigService<Env>) => {
+        const dbConfig = configService.get('db', {
+          infer: true,
+        });
+
+        const { database, user: username, password, port, host } = dbConfig;
+
         return {
-          database: envService.get('db.database', {
+          database,
+
+          synchronize: configService.get('mode.isDev', {
             infer: true,
           }),
-
-          synchronize: true,
 
           type: 'postgres',
 
-          username: envService.get('db.user', {
-            infer: true,
-          }),
+          username,
 
-          password: envService.get('db.password', {
-            infer: true,
-          }),
+          password,
 
-          port: envService.get('db.port', {
-            infer: true,
-          }),
+          port,
 
-          host: envService.get('db.host', {
-            infer: true,
-          }),
+          host,
 
           entities: MODELS,
         };
       },
     }),
+    DevModule,
     AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(CookiesMiddleware).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL,
+    });
+  }
+}
