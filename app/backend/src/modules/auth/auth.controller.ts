@@ -20,15 +20,17 @@ import { Response, Request } from 'express';
 import { PasswordChangeRequest } from '@/models/password-change-request.model';
 import { CryptoService } from '@/modules/crypto/crypto.service';
 import { ValidationPipe } from '@/pipes/validation.pipe';
-import { EmailType } from '@/constants/email-type.constant';
+import { EMAIL_TYPE } from '@/constants/email-type.constant';
 import { AuthGuard } from '@/guards/auth.guard';
 import { jwtConfig } from '@/configurations/jwt.config';
 import { resendConfig } from '@/configurations/resend.config';
 import { modeConfig } from '@/configurations/mode.config';
 import { User } from '@/models/user.model';
+import { CurrentUser } from '@/decorators/user.decorator';
+import { SerializerService } from '@/modules/serializer/serializer.service';
 
 import { AuthService } from './auth.service';
-import { CurrentUser } from '@/decorators/user.decorator';
+import { GROUPS, ROLES } from '@/constants';
 
 @Controller('auth')
 export class AuthController {
@@ -41,12 +43,17 @@ export class AuthController {
     private resendOptions: ConfigType<typeof resendConfig>,
     private authService: AuthService,
     private cryptoService: CryptoService,
+    private serializerService: SerializerService,
   ) {}
 
   @UseGuards(AuthGuard)
   @Get('/me')
   async getCurrentUser(@CurrentUser() currentUser: User) {
-    return currentUser;
+    const groups: GROUPS[] = [GROUPS.Self];
+
+    if (currentUser.role === ROLES.Admin) groups.push(GROUPS.Admin);
+
+    return this.serializerService.serializeByGroups(currentUser, groups);
   }
 
   @Post('/login')
@@ -143,7 +150,7 @@ export class AuthController {
 
     const allUserSignUpEmails = await this.authService.findEmails(
       userId,
-      EmailType.SignUpConfirm,
+      EMAIL_TYPE.SignUpConfirm,
     );
 
     const [lastSignUpEmail] = allUserSignUpEmails;

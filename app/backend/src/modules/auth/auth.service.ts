@@ -18,7 +18,7 @@ import { Email } from '@/models/email.model';
 import { urlConfig } from '@/configurations/url.config';
 import { jwtConfig } from '@/configurations/jwt.config';
 import { MailService } from '@/modules/mail/mail.service';
-import { EmailType } from '@/constants/email-type.constant';
+import { EMAIL_TYPE } from '@/constants/email-type.constant';
 import { PasswordChangeRequest } from '@/models/password-change-request.model';
 
 @Injectable()
@@ -111,7 +111,7 @@ export class AuthService {
 
     const signUpEmail = await this.EmailRepository.create();
 
-    signUpEmail.type = EmailType.SignUpConfirm;
+    signUpEmail.type = EMAIL_TYPE.SignUpConfirm;
     signUpEmail.user = user;
 
     return this.EmailRepository.save(signUpEmail);
@@ -134,7 +134,7 @@ export class AuthService {
 
     const signUpEmail = await this.EmailRepository.create();
 
-    signUpEmail.type = EmailType.PasswordChangeConfirm;
+    signUpEmail.type = EMAIL_TYPE.PasswordChangeConfirm;
     signUpEmail.user = user;
 
     return this.EmailRepository.save(signUpEmail);
@@ -146,7 +146,7 @@ export class AuthService {
     });
   }
 
-  findEmails(userId: number, type: EmailType) {
+  findEmails(userId: number, type: EMAIL_TYPE) {
     return this.EmailRepository.find({
       relations: {
         user: true,
