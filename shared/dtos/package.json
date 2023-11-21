@@ -8,6 +8,7 @@
   "types": "src/index.ts",
   "main": "src/index.ts",
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@pathway-up/constants": "workspace:*"
   }
 }

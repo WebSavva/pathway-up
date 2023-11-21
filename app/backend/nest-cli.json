@@ -7,6 +7,7 @@
     "builder": "webpack"
   },
   "packagesToTranspile": [
-    "@pathway-up/dtos"
+    "@pathway-up/dtos",
+    "@pathway-up/constants"
   ]
 }

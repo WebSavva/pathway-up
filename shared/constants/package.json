@@ -1,0 +1,10 @@
+{
+  "name": "@pathway-up/constants",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Enum and other constants for PathwayUp application",
+  "license": "MIT",
+  "type": "module",
+  "types": "src/index.ts",
+  "main": "src/index.ts"
+}

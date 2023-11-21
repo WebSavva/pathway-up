@@ -16,11 +16,11 @@ import { ConfigType } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Response, Request } from 'express';
+import { EMAIL_TYPES } from '@pathway-up/constants';
 
 import { PasswordChangeRequest } from '@/models/password-change-request.model';
 import { CryptoService } from '@/modules/crypto/crypto.service';
 import { ValidationPipe } from '@/pipes/validation.pipe';
-import { EMAIL_TYPE } from '@/constants/email-type.constant';
 import { AuthGuard } from '@/guards/auth.guard';
 import { jwtConfig } from '@/configurations/jwt.config';
 import { resendConfig } from '@/configurations/resend.config';
@@ -28,9 +28,9 @@ import { modeConfig } from '@/configurations/mode.config';
 import { User } from '@/models/user.model';
 import { CurrentUser } from '@/decorators/user.decorator';
 import { SerializerService } from '@/modules/serializer/serializer.service';
+import { GROUPS, ROLES } from '@pathway-up/constants';
 
 import { AuthService } from './auth.service';
-import { GROUPS, ROLES } from '@/constants';
 
 @Controller('auth')
 export class AuthController {
@@ -150,7 +150,7 @@ export class AuthController {
 
     const allUserSignUpEmails = await this.authService.findEmails(
       userId,
-      EMAIL_TYPE.SignUpConfirm,
+      EMAIL_TYPES.SignUpConfirm,
     );
 
     const [lastSignUpEmail] = allUserSignUpEmails;
