@@ -14,7 +14,7 @@ import { ConfigType } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Response, Request } from 'express';
-import { EMAIL_TYPES } from '@pathway-up/constants';
+import { EMAILS } from '@pathway-up/constants';
 
 import { PasswordChangeRequest } from '@/models/password-change-request.model';
 import { CryptoService } from '@/modules/crypto/crypto.service';
@@ -131,7 +131,7 @@ export class AuthController {
 
     const allUserSignUpEmails = await this.authService.findEmails(
       userId,
-      EMAIL_TYPES.SignUpConfirm,
+      EMAILS.SignUpConfirm,
     );
 
     const [lastSignUpEmail] = allUserSignUpEmails;

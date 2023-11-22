@@ -6,6 +6,7 @@ import { mailConfig } from './mail.config';
 import { cookiesConfig } from './cookies.config';
 import { resendConfig } from './resend.config';
 import { urlConfig } from './url.config';
+import { s3Config } from './s3.config';
 
 export const envLoadersMap = {
   jwtConfig,
@@ -16,6 +17,7 @@ export const envLoadersMap = {
   cookiesConfig,
   resendConfig,
   urlConfig,
+  s3Config,
 };
 
 export type EnvLoadersMap = typeof envLoadersMap;

@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   Relation
 } from 'typeorm';
-import { EMAIL_TYPES } from '@pathway-up/constants';
+import { EMAILS } from '@pathway-up/constants';
 
 import { User } from './user.model';
 
@@ -17,9 +17,9 @@ export class Email {
 
   @Column({
     type: 'enum',
-    enum: EMAIL_TYPES,
+    enum: EMAILS,
   })
-  type: EMAIL_TYPES;
+  type: EMAILS;
 
   @CreateDateColumn({
     type: 'timestamptz',

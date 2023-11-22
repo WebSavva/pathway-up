@@ -9,8 +9,8 @@ import {
   BeforeUpdate,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
+import { GENDERS, COUNTRIES, ROLES, GROUPS } from '@pathway-up/constants';
 
-import { GENDERS, COUNTRIES, ROLES, GROUPS } from '../constants';
 
 import { Email } from './email.model';
 import { PasswordChangeRequest } from './password-change-request.model';
@@ -45,6 +45,7 @@ export class User {
   })
   avatarUrl?: string | null;
 
+  @Exclude()
   @Column({
     type: 'boolean',
     default: false,

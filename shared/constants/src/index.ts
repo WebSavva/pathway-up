@@ -1,5 +1,6 @@
 export * from './countries';
 export * from './genders';
 export * from './roles';
-export * from './email-types';
+export * from './emails';
 export * from './groups';
+export * from './files';
