@@ -156,7 +156,8 @@ export class AuthService {
         user: {
           id: userId,
         },
-        type: type,
+
+        type,
       },
 
       order: {

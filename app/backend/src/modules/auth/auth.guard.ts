@@ -2,20 +2,21 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  Inject,
   UnauthorizedException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import { CryptoService } from '@/modules/crypto/crypto.service';
 import { Request } from 'express';
 import { AuthPayload, AuthPayloadSchema } from '@pathway-up/dtos';
-import { User } from '@/models/user.model';
+
+import { CryptoService } from '@/modules/crypto/crypto.service';
+import { UsersService } from '@/modules/users/users.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    @Inject(CryptoService) private cryptoService: CryptoService,
-    private dataSource: DataSource,
+    private cryptoService: CryptoService,
+    private usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -34,11 +35,7 @@ export class AuthGuard implements CanActivate {
 
       AuthPayloadSchema.parse(authPayload);
 
-      const user = await this.dataSource.getRepository(User).findOne({
-        where: {
-          id: authPayload.userId,
-        },
-      });
+      const user = await this.usersService.findUserById(authPayload.userId);
 
       if (!user) throwUnauthorizedException();
 

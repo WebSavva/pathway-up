@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
   BeforeUpdate,
 } from 'typeorm';
-import { Exclude ,Expose } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 
 import { GENDERS, COUNTRIES, ROLES, GROUPS } from '../constants';
 
@@ -121,7 +121,7 @@ export class User {
   createdAt: Date;
 
   @Expose({
-    groups: [GROUPS.Admin, GROUPS.Self]
+    groups: [GROUPS.Admin, GROUPS.Self],
   })
   @Column({
     type: 'timestamptz',
@@ -130,13 +130,18 @@ export class User {
   confirmedAt: Date | null;
 
   @Expose({
-    groups: [GROUPS.Admin, GROUPS.Self]
+    groups: [GROUPS.Admin, GROUPS.Self],
   })
   @UpdateDateColumn({
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @Exclude()
+  get isAdmin() {
+    return this.role === ROLES.Admin;
+  }
 
   @BeforeUpdate()
   updateUpdatedAt() {

@@ -8,8 +8,6 @@ import {
   Res,
   Inject,
   Req,
-  Get,
-  UseGuards,
 } from '@nestjs/common';
 import { AuthUserDto, AuthUserDtoSchema } from '@pathway-up/dtos';
 import { ConfigType } from '@nestjs/config';
@@ -21,14 +19,9 @@ import { EMAIL_TYPES } from '@pathway-up/constants';
 import { PasswordChangeRequest } from '@/models/password-change-request.model';
 import { CryptoService } from '@/modules/crypto/crypto.service';
 import { ValidationPipe } from '@/pipes/validation.pipe';
-import { AuthGuard } from '@/guards/auth.guard';
 import { jwtConfig } from '@/configurations/jwt.config';
 import { resendConfig } from '@/configurations/resend.config';
 import { modeConfig } from '@/configurations/mode.config';
-import { User } from '@/models/user.model';
-import { CurrentUser } from '@/decorators/user.decorator';
-import { SerializerService } from '@/modules/serializer/serializer.service';
-import { GROUPS, ROLES } from '@pathway-up/constants';
 
 import { AuthService } from './auth.service';
 
@@ -43,18 +36,7 @@ export class AuthController {
     private resendOptions: ConfigType<typeof resendConfig>,
     private authService: AuthService,
     private cryptoService: CryptoService,
-    private serializerService: SerializerService,
   ) {}
-
-  @UseGuards(AuthGuard)
-  @Get('/me')
-  async getCurrentUser(@CurrentUser() currentUser: User) {
-    const groups: GROUPS[] = [GROUPS.Self];
-
-    if (currentUser.role === ROLES.Admin) groups.push(GROUPS.Admin);
-
-    return this.serializerService.serializeByGroups(currentUser, groups);
-  }
 
   @Post('/login')
   @UsePipes(new ValidationPipe(AuthUserDtoSchema))
@@ -73,7 +55,6 @@ export class AuthController {
     const authToken = await this.authService.generateAuthToken(user.id);
 
     return {
-      user,
       token: authToken,
     };
   }

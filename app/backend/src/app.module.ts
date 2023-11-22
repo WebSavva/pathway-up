@@ -13,6 +13,7 @@ import { envLoaders, Env } from './configurations';
 import { MODELS } from './models';
 import { AuthModule } from './modules/auth/auth.module';
 import { DevModule } from './modules/dev/dev.module';
+import { UsersModule } from './modules/users/users.module';
 import { SerializerModule } from './modules/serializer/serializer.module';
 import { CookiesMiddleware } from './middlewares/cookies.middleware';
 
@@ -60,6 +61,7 @@ import { CookiesMiddleware } from './middlewares/cookies.middleware';
     }),
     DevModule,
     AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule implements NestModule {
