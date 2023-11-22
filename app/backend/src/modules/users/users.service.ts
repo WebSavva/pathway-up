@@ -27,4 +27,10 @@ export class UsersService {
   public throwNotFoundUserException() {
     throw new NotFoundException('No user was found !');
   }
+
+  public async patchUserById(id: number, partialUser: Partial<User>) {
+    await this.userRepository.update(id, partialUser);
+
+    return this.findUserById(id);
+  }
 }

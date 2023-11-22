@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { COUNTRIES } from '@/constants';
+import { COUNTRIES } from '@pathway-up/constants';
 
 import { password } from './validators';
 
@@ -34,12 +34,11 @@ export const UserDtoSchema = z
     avatarUrl: z.string(),
     bio: z.string().max(255),
     countryCode: z.nativeEnum(COUNTRIES),
-    birthday: z.string().datetime().pipe(z.date()),
-  })
-  .required();
+    birthday: z.string().datetime().pipe(z.coerce.date()),
+  });
 
 export type UserDto = z.infer<typeof UserDtoSchema>;
 
-export const UserPartialDto = UserDtoSchema.partial();
+export const UserPartialDtoSchema = UserDtoSchema.partial();
 
-export type UserPartialDto = z.infer<typeof UserPartialDto>;
+export type UserPartialDto = z.infer<typeof UserPartialDtoSchema>;
