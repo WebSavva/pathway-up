@@ -7,13 +7,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BeforeUpdate,
+  OneToOne,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
 import { GENDERS, COUNTRIES, ROLES, GROUPS } from '@pathway-up/constants';
 
-
 import { Email } from './email.model';
 import { PasswordChangeRequest } from './password-change-request.model';
+import { Avatar } from './avatar.model';
 
 @Entity()
 export class User {
@@ -39,11 +40,10 @@ export class User {
   })
   birthday?: Date | null;
 
-  @Column({
-    type: 'text',
+  @OneToOne((type) => Avatar, {
     nullable: true,
   })
-  avatarUrl?: string | null;
+  avatar?: Avatar | null;
 
   @Exclude()
   @Column({

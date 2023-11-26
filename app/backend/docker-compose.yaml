@@ -1,7 +1,4 @@
-version: '24'
-
-include:
-  - ./docker-compose-s3.yaml
+version: '3'
 
 services:
   database:

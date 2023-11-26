@@ -26,8 +26,14 @@ export const S3_SERVICE_FACTORY_PROVIDER: FactoryProvider<S3> = {
 
     const allBuckets = await s3.listBuckets().promise();
 
-    if (!allBuckets.Buckets.find(({ Name }) => Name === bucket))
-      throw new Error(`"${bucket}" does not exist !`);
+    if (!allBuckets.Buckets.find(({ Name }) => Name === bucket)) {
+      await s3
+        .createBucket({
+          Bucket: bucket,
+          ACL: 'public-read',
+        })
+        .promise();
+    }
 
     return s3;
   },
