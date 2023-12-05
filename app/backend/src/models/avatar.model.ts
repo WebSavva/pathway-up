@@ -16,12 +16,6 @@ export class Avatar extends UpdateableEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    type: 'enum',
-    enum: FILES,
-  })
-  type: FILES;
-
   @Exclude()
   @OneToOne((type) => User, {
     onDelete: 'SET NULL',
@@ -30,8 +24,12 @@ export class Avatar extends UpdateableEntity {
   user?: Relation<User>;
 
   @Column({
-    type: 'string',
+    type: 'varchar',
     length: '300',
   })
   key: string;
+
+  get url() {
+    return `${process.env.PW_S3_URL}/${process.env.PW_S3_BUCKET}/${this.key}`;
+  }
 }

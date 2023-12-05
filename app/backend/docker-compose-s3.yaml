@@ -11,7 +11,7 @@ services:
     image: chrislusf/seaweedfs
     ports:
       - 8080:8080
-    command: 'volume -ip=volume -mserver=seaweed-master:9333 -port=8080 -preStopSeconds=1'
+    command: 'volume -ip=seaweed-volume -mserver=seaweed-master:9333 -port=8080 -preStopSeconds=1'
     depends_on:
       - seaweed-master
 

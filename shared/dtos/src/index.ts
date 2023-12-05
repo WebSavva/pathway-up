@@ -31,7 +31,6 @@ export type AuthPayload = z.infer<typeof AuthPayloadSchema>;
 export const UserDtoSchema = z
   .object({
     name: z.string().max(20),
-    avatarUrl: z.string(),
     bio: z.string().max(255),
     countryCode: z.nativeEnum(COUNTRIES),
     birthday: z.string().datetime().pipe(z.coerce.date()),

@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
   BeforeUpdate,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
 import { GENDERS, COUNTRIES, ROLES, GROUPS } from '@pathway-up/constants';
@@ -42,7 +43,9 @@ export class User {
 
   @OneToOne((type) => Avatar, {
     nullable: true,
+    eager: true,
   })
+  @JoinColumn()
   avatar?: Avatar | null;
 
   @Exclude()

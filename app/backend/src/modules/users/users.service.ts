@@ -3,11 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '@/models/user.model';
+import { Avatar } from '@/models/avatar.model';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Avatar) private avatarRepository: Repository<Avatar>,
   ) {}
 
   public findUserByField<K extends keyof User>(fieldName: K, value: any) {
@@ -32,5 +34,25 @@ export class UsersService {
     await this.userRepository.update(id, partialUser);
 
     return this.findUserById(id);
+  }
+
+  public async deleteUserAvatar(userId) {
+    const user = await this.findUserById(userId)
+
+    const {
+      avatar
+    } = user;
+
+    if (!avatar) return true;
+
+    avatar.user = null;
+
+    await this.avatarRepository.save(avatar);
+
+    user.avatar = null;
+
+    await this.userRepository.save(user);
+
+    return true;
   }
 }

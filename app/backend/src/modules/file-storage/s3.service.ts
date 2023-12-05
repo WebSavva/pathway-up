@@ -22,6 +22,7 @@ export const S3_SERVICE_FACTORY_PROVIDER: FactoryProvider<S3> = {
         accessKeyId: accessKey,
         secretAccessKey: secretKey,
       },
+      s3ForcePathStyle: true,
     });
 
     const allBuckets = await s3.listBuckets().promise();
@@ -39,4 +40,4 @@ export const S3_SERVICE_FACTORY_PROVIDER: FactoryProvider<S3> = {
   },
 };
 
-export type S3Service = typeof S3;
+export type S3Service = InstanceType<typeof S3>;
