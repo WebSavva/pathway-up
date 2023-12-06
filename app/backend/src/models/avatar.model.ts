@@ -4,8 +4,8 @@ import {
   PrimaryGeneratedColumn,
   Relation,
   OneToOne,
+  JoinColumn
 } from 'typeorm';
-import { FILES } from '@pathway-up/constants';
 import { Exclude } from 'class-transformer';
 
 import { UpdateableEntity } from './abstract/updateable-entity';
@@ -17,11 +17,12 @@ export class Avatar extends UpdateableEntity {
   id: number;
 
   @Exclude()
-  @OneToOne((type) => User, {
+  @OneToOne((type) => User, (user) => user.avatar, {
     onDelete: 'SET NULL',
     nullable: true,
   })
-  user?: Relation<User>;
+  @JoinColumn()
+  user?: Relation<User> | null;
 
   @Column({
     type: 'varchar',

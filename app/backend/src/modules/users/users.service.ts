@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 
 import { User } from '@/models/user.model';
 import { Avatar } from '@/models/avatar.model';
@@ -49,10 +49,14 @@ export class UsersService {
 
     await this.avatarRepository.save(avatar);
 
-    user.avatar = null;
-
-    await this.userRepository.save(user);
-
     return true;
+  }
+
+  public getAllStaleAvatars() {
+    return this.avatarRepository.find({
+      where: {
+        user: IsNull()
+      }
+    });
   }
 }

@@ -128,13 +128,11 @@ export class UsersController {
       this.throwFailedAvatarUploadException();
     }
 
-    console.log(newAvatar);
-
     return this.serializerService.serializeByGroups(newAvatar, [GROUPS.Self]);
   }
 
-  @Delete('/me/avatar')
   @UseGuards(AuthGuard)
+  @Delete('/me/avatar')
   async deleteAvatar(@CurrentUser() currentUser: User) {
     return this.usersService.deleteUserAvatar(currentUser.id);
   }

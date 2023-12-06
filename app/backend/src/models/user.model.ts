@@ -41,11 +41,10 @@ export class User {
   })
   birthday?: Date | null;
 
-  @OneToOne((type) => Avatar, {
+  @OneToOne((type) => Avatar, (avatar) => avatar.user, {
     nullable: true,
     eager: true,
   })
-  @JoinColumn()
   avatar?: Avatar | null;
 
   @Exclude()
