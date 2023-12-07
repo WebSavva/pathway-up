@@ -2,20 +2,20 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
-  Inject,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DataSource } from 'typeorm';
-import { CryptoService } from '@/modules/crypto/crypto.service';
 import { Request } from 'express';
 import { AuthPayload, AuthPayloadSchema } from '@pathway-up/dtos';
+
 import { User } from '@/models/user.model';
+import { CryptoService } from '@/modules/crypto/crypto.service';
+import { UsersService } from '@/modules/users/users.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    @Inject(CryptoService) private cryptoService: CryptoService,
-    private dataSource: DataSource,
+    private cryptoService: CryptoService,
+    private usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,9 +23,13 @@ export class AuthGuard implements CanActivate {
 
     const authToken = this.extractTokenFromHeader(request);
 
-    const throwUnauthorizedException = () => new UnauthorizedException();
+    const throwUnauthorizedException = () => {
+      throw new UnauthorizedException();
+    };
 
     if (!authToken) throwUnauthorizedException();
+
+    let user: User;
 
     try {
       const authPayload = await this.cryptoService.verifyJwtToken<AuthPayload>(
@@ -34,18 +38,15 @@ export class AuthGuard implements CanActivate {
 
       AuthPayloadSchema.parse(authPayload);
 
-      const user = await this.dataSource.getRepository(User).findOne({
-        where: {
-          id: authPayload.userId,
-        },
-      });
-
-      if (!user) throwUnauthorizedException();
-
-      request['user'] = user;
+      user = await this.usersService.findUserById(authPayload.userId);
     } catch {
-      throw new UnauthorizedException();
+      throwUnauthorizedException();
     }
+
+    if (!user) throwUnauthorizedException();
+
+    request['user'] = user;
+
     return true;
   }
 

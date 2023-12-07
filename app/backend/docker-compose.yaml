@@ -1,5 +1,8 @@
 version: '3'
 
+include:
+  - ./docker-compose-s3.yaml
+
 services:
   database:
     image: 'postgres:latest'

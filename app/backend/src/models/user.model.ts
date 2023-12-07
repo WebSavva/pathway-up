@@ -7,13 +7,15 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BeforeUpdate,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
-import { Exclude ,Expose } from 'class-transformer';
-
-import { GENDERS, COUNTRIES, ROLES, GROUPS } from '../constants';
+import { Exclude, Expose } from 'class-transformer';
+import { GENDERS, COUNTRIES, ROLES, GROUPS } from '@pathway-up/constants';
 
 import { Email } from './email.model';
 import { PasswordChangeRequest } from './password-change-request.model';
+import { Avatar } from './avatar.model';
 
 @Entity()
 export class User {
@@ -39,12 +41,13 @@ export class User {
   })
   birthday?: Date | null;
 
-  @Column({
-    type: 'text',
+  @OneToOne((type) => Avatar, (avatar) => avatar.user, {
     nullable: true,
+    eager: true,
   })
-  avatarUrl?: string | null;
+  avatar?: Avatar | null;
 
+  @Exclude()
   @Column({
     type: 'boolean',
     default: false,
@@ -59,7 +62,7 @@ export class User {
 
   @Column({
     type: 'varchar',
-    length: '255',
+    length: 255,
     nullable: true,
   })
   bio?: string | null;
@@ -121,7 +124,7 @@ export class User {
   createdAt: Date;
 
   @Expose({
-    groups: [GROUPS.Admin, GROUPS.Self]
+    groups: [GROUPS.Admin, GROUPS.Self],
   })
   @Column({
     type: 'timestamptz',
@@ -130,13 +133,18 @@ export class User {
   confirmedAt: Date | null;
 
   @Expose({
-    groups: [GROUPS.Admin, GROUPS.Self]
+    groups: [GROUPS.Admin, GROUPS.Self],
   })
   @UpdateDateColumn({
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @Exclude()
+  get isAdmin() {
+    return this.role === ROLES.Admin;
+  }
 
   @BeforeUpdate()
   updateUpdatedAt() {

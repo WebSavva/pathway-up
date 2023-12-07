@@ -1,7 +1,7 @@
 import { Controller, Delete, UseGuards } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
-import { DevGuard } from '@/guards/dev.guard';
+import { DevGuard } from './dev.guard';
 
 @Controller('/dev')
 @UseGuards(DevGuard)

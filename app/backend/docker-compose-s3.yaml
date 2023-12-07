@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  seaweed-master:
+    image: chrislusf/seaweedfs
+    ports:
+      - 9333:9333
+    command: 'master -ip=seaweed-master -volumeSizeLimitMB=1024'
+
+  seaweed-volume:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8080:8080
+    command: 'volume -ip=seaweed-volume -mserver=seaweed-master:9333 -port=8080 -preStopSeconds=1'
+    depends_on:
+      - seaweed-master
+
+  s3:
+    image: chrislusf/seaweedfs
+    ports:
+      - 8000:8000
+    command: 'filer -master="seaweed-master:9333" -s3 -s3.config=/etc/seaweedfs/s3.json -s3.port=8000 -s3.allowEmptyFolder=false -s3.allowDeleteBucketNotEmpty=false'
+    volumes:
+      - ./s3.json:/etc/seaweedfs/s3.json
+    depends_on:
+      - seaweed-master
+      - seaweed-volume
+
