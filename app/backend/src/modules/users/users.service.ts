@@ -1,15 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Raw } from 'typeorm';
+import { ConfigType } from '@nestjs/config';
 
+import { filesConfig } from '@/configurations/files.config';
 import { User } from '@/models/user.model';
 import { Avatar } from '@/models/avatar.model';
+import { FileStorageService } from '@/modules/file-storage/file-storage.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Avatar) private avatarRepository: Repository<Avatar>,
+    @Inject(filesConfig.KEY) private filesOptions: ConfigType<typeof filesConfig>,
+    private fileStorageService: FileStorageService
   ) {}
 
   public findUserByField<K extends keyof User>(fieldName: K, value: any) {
@@ -36,26 +41,33 @@ export class UsersService {
     return this.findUserById(id);
   }
 
-  public async deleteUserAvatar(userId) {
+  public async deleteUserAvatarByUserId(userId) {
     const user = await this.findUserById(userId)
 
     const {
       avatar
     } = user;
 
-    if (!avatar) return true;
+    if (!avatar) return;
 
-    avatar.user = null;
+    await this.deleteUserAvatar(avatar);
+  }
 
-    await this.avatarRepository.save(avatar);
+  public async deleteUserAvatar(avatar: Avatar) {
+    await this.fileStorageService.deleteFile(avatar.key)
 
-    return true;
+    await this.avatarRepository.remove(avatar);
   }
 
   public getAllStaleAvatars() {
     return this.avatarRepository.find({
       where: {
-        user: IsNull()
+        user: IsNull(),
+        createdAt: Raw((alias) => {
+          const res = `(CURRENT_TIMESTAMP - ${alias}) > INTERVAL '${this.filesOptions.avatar.staleDuration} sec'`;
+
+          return res;
+        })
       }
     });
   }

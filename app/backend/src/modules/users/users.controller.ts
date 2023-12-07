@@ -92,7 +92,7 @@ export class UsersController {
 
     let newAvatar: Avatar;
 
-    const currentAvatar = currentUser.avatar
+    const currentAvatar = currentUser.avatar;
 
     try {
       await this.dataSource.transaction(async (entityManager) => {
@@ -134,7 +134,7 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @Delete('/me/avatar')
   async deleteAvatar(@CurrentUser() currentUser: User) {
-    return this.usersService.deleteUserAvatar(currentUser.id);
+    return this.usersService.deleteUserAvatarByUserId(currentUser.id);
   }
 
   private throwFailedAvatarUploadException() {

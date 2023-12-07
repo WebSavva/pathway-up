@@ -31,7 +31,7 @@ export class FileStorageService {
     return this.s3Service.deleteObject({
       Bucket: this.s3Options.bucket,
       Key: key,
-    });
+    }).promise();
   }
 
   generateUniqueFilename(mimeType: string) {
