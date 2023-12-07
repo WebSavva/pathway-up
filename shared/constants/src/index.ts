@@ -3,4 +3,3 @@ export * from './genders';
 export * from './roles';
 export * from './emails';
 export * from './groups';
-export * from './files';
