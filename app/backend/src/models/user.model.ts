@@ -8,10 +8,16 @@ import {
   UpdateDateColumn,
   BeforeUpdate,
   OneToOne,
-  JoinColumn,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
-import { GENDERS, COUNTRIES, ROLES, GROUPS } from '@pathway-up/constants';
+import {
+  GENDERS,
+  COUNTRIES,
+  ROLES,
+  GROUPS,
+  LANGUAGE_LEVELS,
+  LANGUAGES,
+} from '@pathway-up/constants';
 
 import { Email } from './email.model';
 import { PasswordChangeRequest } from './password-change-request.model';
@@ -140,6 +146,29 @@ export class User {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @Column({
+    type: 'enum',
+    enum: LANGUAGE_LEVELS,
+    nullable: true,
+  })
+  englishLevel: LANGUAGE_LEVELS;
+
+  @Column({
+    type: 'enum',
+    enum: LANGUAGES,
+    array: true,
+    default: '{}',
+  })
+  nativeLanguages: LANGUAGES[];
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    array: true,
+    default: '{}',
+  })
+  interests: string[];
 
   @Exclude()
   get isAdmin() {
